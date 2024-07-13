@@ -1,0 +1,4 @@
+LOAD CSV WITH HEADERS FROM 'file:///commits.csv' AS row
+MERGE (c:Commit {Name: row.CommitId, CommitId:row.CommitId, Branch: row.Branch,Date:row.Date})
+MERGE (d:Developer {DeveloperId: row.DeveloperId})
+CREATE (c)-[:Commited_BY]->(d)

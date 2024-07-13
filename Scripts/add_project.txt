@@ -1,0 +1,7 @@
+//Add Project
+LOAD CSV WITH HEADERS FROM 'file:///project.csv' AS row
+WITH row WHERE row.ProjectId IS NOT NULL
+MERGE (p:Project {ProjectId: row.ProjectId})
+ON CREATE SET p.Name = row.ProjectName, p.Date = row.Date
+ON MATCH SET p.Date = row.Date
+RETURN p

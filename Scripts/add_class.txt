@@ -1,0 +1,5 @@
+//Add Classes
+LOAD CSV WITH HEADERS FROM 'file:///class.csv' AS row
+MERGE (cl:Class {Name: row.Name, ClassId:row.id,CommitId:row.CommitId})
+MERGE (c:Commit {CommitId: row.CommitId})
+CREATE (cl)-[:Updated_in]->(c)

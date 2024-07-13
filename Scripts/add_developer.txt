@@ -1,0 +1,7 @@
+//Add Developer
+LOAD CSV WITH HEADERS FROM 'file:///developer.csv' AS row
+WITH row WHERE row.DeveloperId IS NOT NULL
+MERGE (d:Developer {DeveloperId:row.DeveloperId})
+ON CREATE SET d.Name = row.Name,d.ProjectId = row.ProjectId
+MERGE (p:Project {ProjectId: row.ProjectId})
+MERGE (d)-[:WORKS_ON]->(p)

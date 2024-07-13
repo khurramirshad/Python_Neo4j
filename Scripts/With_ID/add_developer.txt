@@ -1,0 +1,4 @@
+LOAD CSV WITH HEADERS FROM 'file:///developer.csv' AS row
+MERGE (d:Developer {Name: row.Name, DeveloperId:row.DeveloperId})
+MERGE (p:Project {Projectid: row.Projectid})
+CREATE (d)-[:WORKS_ON]->(p)

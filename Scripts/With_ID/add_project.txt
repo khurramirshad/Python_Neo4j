@@ -1,0 +1,2 @@
+LOAD CSV WITH HEADERS FROM 'file:///project.csv' AS row
+CREATE (p:Person {ProjectId: row.Projectid, Name: row.ProjectName, Date: row.Date})

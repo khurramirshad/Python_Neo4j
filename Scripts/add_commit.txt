@@ -1,0 +1,6 @@
+LOAD CSV WITH HEADERS FROM 'file:///commits.csv' AS row
+WITH row WHERE row.CommitId IS NOT NULL
+MERGE (c:Commit {CommitId:row.CommitId})
+ON CREATE SET c.Name = row.CommitId,c.Branch = row.Branch,c.Date = row.Date
+MERGE (d:Developer {DeveloperId: row.DeveloperId})
+MERGE (c)-[:Commited_BY]->(d)
