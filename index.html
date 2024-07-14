@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Neo4j D3 Visualization</title>
+    <script src="https://requirejs.org/docs/release/2.3.5/minified/require.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/neo4j-driver/lib/browser/neo4j-web.min.js"></script>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+   
+
+    <script  src="connection.js"></script>
+</head>
+<body>
+    <input type="text" id="query" value="MATCH (n) return n">
+    <button onclick="submitQuery()">Submit</button>
+    <canvas id="graphCanvas" width="800" height="600"></canvas>
+</body>
+</html>
