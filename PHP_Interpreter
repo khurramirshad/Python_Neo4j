@@ -1,0 +1,107 @@
+from neo4j import GraphDatabase
+import sys
+import csv
+
+sys.stdout.reconfigure(encoding='utf-8')
+
+# Connect to the Neo4j database
+uri = "bolt://localhost:7687"
+username = "neo4j"
+password = "12345678"
+driver = GraphDatabase.driver(uri, auth=(username, password))
+
+def create_graph_if_not_exists(tx):
+    graph_name = 'developerGraph7'
+    check_query = f"""
+    CALL gds.graph.exists('{graph_name}')
+    YIELD exists
+    """
+    result = tx.run(check_query)
+    graph_exists = result.single()["exists"]
+
+    if not graph_exists:
+        create_query = f"""
+        CALL gds.graph.project(
+            '{graph_name}', 
+            ['File', 'Developer'],  
+            {{
+                UPDATED: {{
+                    type: 'UPDATED',
+                    orientation: 'UNDIRECTED'
+                }}
+            }}
+        )
+        """
+        tx.run(create_query)
+        print(f"Graph '{graph_name}' created successfully.")
+    else:
+        print(f"Graph '{graph_name}' already exists.")
+
+def calculate_betweenness_centrality(tx):
+    query = """
+    CALL gds.betweenness.stream('developerGraph7')
+    YIELD nodeId, score AS Centrality
+    WITH gds.util.asNode(nodeId) AS node, Centrality
+    WHERE node:Developer
+    RETURN node.DeveloperId AS DeveloperId, node.Name AS Name, Centrality
+    ORDER BY Centrality DESC
+    """
+    result = tx.run(query)
+    centrality_scores = []
+    for record in result:
+        centrality_scores.append({
+            'DeveloperId': record['DeveloperId'],
+            'Name': record['Name'],
+            'Centrality': record['Centrality']
+        })
+    return centrality_scores
+
+def find_best_replacement(tx, developer_id, centrality_scores):
+    query = """
+    MATCH (d:Developer)-[:UPDATED]->(f:File)<-[:UPDATED]-(other:Developer)
+    WHERE d.DeveloperId = $developer_id AND d <> other
+    RETURN other.DeveloperId AS Developer_Id, COUNT(f) AS Common_Files
+    ORDER BY Common_Files DESC
+    """
+    result = tx.run(query, {"developer_id": developer_id})
+    best_replacement = None
+    highest_centrality = -1
+    for record in result:
+        other_dev_id = record['Developer_Id']
+        if any(dev['DeveloperId'] == other_dev_id for dev in centrality_scores):
+            centrality = next(dev['Centrality'] for dev in centrality_scores if dev['DeveloperId'] == other_dev_id)
+            if centrality > highest_centrality:
+                highest_centrality = centrality
+                best_replacement = other_dev_id
+    return best_replacement, highest_centrality
+
+def save_results_to_files(centrality_scores, best_replacement, replacement_centrality):
+    # Save centrality scores to CSV
+    with open('joda_centrality_scores.csv', 'w', newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(f, fieldnames=['DeveloperId', 'Name', 'Centrality'])
+        writer.writeheader()
+        writer.writerows(centrality_scores)
+    
+    # Save best replacement information to CSV
+    with open('best_replacement.csv', 'w', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        if best_replacement:
+            writer.writerow(['Best Replacement', 'Centrality'])
+            writer.writerow([best_replacement, replacement_centrality])
+        else:
+            writer.writerow(['Best Replacement', 'Centrality'])
+            writer.writerow(['No suitable replacement found', 'N/A'])
+
+with driver.session() as session:
+    session.write_transaction(create_graph_if_not_exists)  # Create the graph projection if it doesn't exist
+    
+    centrality_scores = session.read_transaction(calculate_betweenness_centrality)  # Calculate centrality
+    print("Centrality scores calculated.")
+    
+    developer_to_replace = "Stephen Colebourne"
+    best_replacement, replacement_centrality = session.read_transaction(find_best_replacement, developer_to_replace, centrality_scores)
+
+    save_results_to_files(centrality_scores, best_replacement, replacement_centrality)
+
+driver.close()
+

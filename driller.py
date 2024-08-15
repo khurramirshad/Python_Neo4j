@@ -1,32 +1,59 @@
-from pydriller import Repository
-import csv,json
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
-# Replace 'path_to_repo' with the path to your repository
-repo = Repository('https://github.com/khurramirshad/FoodDeliveryProject')
-repo_details = []
+# Create figure and axis
+fig, ax = plt.subplots(figsize=(10, 8))
 
+# Draw rectangles for each layer
+# User Interface
+ax.add_patch(patches.Rectangle((0.3, 0.85), 0.4, 0.1, edgecolor='black', facecolor='lightblue'))
+ax.text(0.5, 0.9, 'User Interface (UI)', horizontalalignment='center', verticalalignment='center', fontsize=12, fontweight='bold')
 
-# Loop through all commits
-for commit in repo.traverse_commits():
-    # print(f'Commit {commit.hash} by {commit.author.name} on {commit.author_date} in {commit.project_name}')
-    file_list = []
-    class_list = []
-    method_list = []
-    
-    for modified_file in commit.modified_files:
-            file_list.append(modified_file.filename)
-            # print(modified_file.source_code)
-            if modified_file.source_code:
-                 for line in modified_file.source_code.split('\n'):
-                    if 'class' in line.split():
-                        class_list.append(line)
+# Application Layer
+ax.add_patch(patches.Rectangle((0.2, 0.65), 0.6, 0.2, edgecolor='black', facecolor='lightgreen'))
+ax.text(0.5, 0.75, 'Application Layer', horizontalalignment='center', verticalalignment='center', fontsize=12, fontweight='bold')
 
-    commit_details = {"id": commit.hash , "ProjectName":commit.project_name , "Date":commit.author_date,"Author": commit.author.name,"Branch":commit.branches,"Files" : file_list, "Class":class_list} 
-    repo_details.append(commit_details)
+# Data Layer
+ax.add_patch(patches.Rectangle((0.15, 0.45), 0.7, 0.15, edgecolor='black', facecolor='lightyellow'))
+ax.text(0.5, 0.525, 'Data Layer', horizontalalignment='center', verticalalignment='center', fontsize=12, fontweight='bold')
 
- 
-    # Write data into the CSV file 
-with open('D:\MS\Dissertation\Python_Neo4j\output\commits_details.csv', 'w', newline='') as file:
-    writer=csv.writer(file)
-    writer.writerow(repo_details)
-   
+# Integration Layer
+ax.add_patch(patches.Rectangle((0.1, 0.3), 0.8, 0.1, edgecolor='black', facecolor='lightcoral'))
+ax.text(0.5, 0.35, 'Integration Layer', horizontalalignment='center', verticalalignment='center', fontsize=12, fontweight='bold')
+
+# Database
+ax.add_patch(patches.Rectangle((0.05, 0.15), 0.9, 0.1, edgecolor='black', facecolor='lightgray'))
+ax.text(0.5, 0.2, 'Database', horizontalalignment='center', verticalalignment='center', fontsize=12, fontweight='bold')
+
+# External Services
+ax.add_patch(patches.Rectangle((0.05, 0.05), 0.9, 0.05, edgecolor='black', facecolor='white'))
+ax.text(0.5, 0.075, 'External Services', horizontalalignment='center', verticalalignment='center', fontsize=12, fontweight='bold')
+
+# Add text for components inside each layer
+# UI Components
+ax.text(0.5, 0.87, 'Developer Dashboard\nTeam Overview', horizontalalignment='center', verticalalignment='center', fontsize=10)
+
+# Application Layer Components
+ax.text(0.5, 0.7, 'Developer Network Analysis Module\nKnowledge Management Module\nRisk Management Module', 
+        horizontalalignment='center', verticalalignment='center', fontsize=10)
+
+# Data Layer Components
+ax.text(0.5, 0.475, 'Developer Repository\nProject Repository\nKnowledge Base', 
+        horizontalalignment='center', verticalalignment='center', fontsize=10)
+
+# Integration Layer Components
+ax.text(0.5, 0.325, 'Git Integration\nCommunication Tools Integration', 
+        horizontalalignment='center', verticalalignment='center', fontsize=10)
+
+# Database Components
+ax.text(0.5, 0.175, 'Graph Database (Neo4j)\nRelational Database', 
+        horizontalalignment='center', verticalalignment='center', fontsize=10)
+
+# External Services Components
+ax.text(0.5, 0.055, 'APIs for External Tools', horizontalalignment='center', verticalalignment='center', fontsize=10)
+
+# Remove axes
+ax.axis('off')
+
+# Show the diagram
+plt.show()
